@@ -18,8 +18,8 @@ func isBracketValid(s string) bool {
 }
 
 func main() {
-	fmt.Printf("%t\n", isBracketValid(")(")) // false
-	fmt.Printf("%t\n", isBracketValid("("))  // false
+	fmt.Printf("%t\n", isBracketValid(")("))
+	fmt.Printf("%t\n", isBracketValid("("))
 	fmt.Printf("%t\n", isBracketValid("(())()"))
 	fmt.Printf("%t\n", isBracketValid("())("))
 	fmt.Printf("%t\n", isBracketValid("()))))((((()"))
