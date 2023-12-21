@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -11,35 +12,58 @@ func main() {
 		go func() {
 			defer close(c)
 			time.Sleep(after)
+			c <- "hello yopta after " + after.String()
 		}()
 		return c
 	}
 
 	start := time.Now()
-	<-or(
-		sig(2*time.Hour),
-		sig(5*time.Minute),
+	c := or(
+		sig(2*time.Millisecond),
+		sig(5*time.Second),
 		sig(1*time.Second),
-		sig(1*time.Hour),
+		sig(2*time.Second),
 		sig(1*time.Minute),
 	)
+
+L:
+	for {
+		select {
+		case v, ok := <-c:
+			if ok {
+				fmt.Println(v)
+			} else {
+				break L
+			}
+		}
+	}
 
 	fmt.Printf("done after %v", time.Since(start))
 }
 
 func or(channels ...<-chan interface{}) <-chan interface{} {
-	resultChan := make(chan interface{})
-	waiter := make(chan interface{}, len(channels))
+	resultChannel := make(chan interface{}, len(channels))
+	wg := sync.WaitGroup{}
+	wg.Add(len(channels))
 	go func() {
-		<-waiter
-		close(resultChan)
+		wg.Wait()
+		close(resultChannel)
 	}()
 	for _, channel := range channels {
 		channel := channel
 		go func() {
-			<-channel
-			waiter <- true
+			for {
+				select {
+				case v, ok := <-channel:
+					if ok {
+						resultChannel <- v
+					} else {
+						wg.Done()
+						return
+					}
+				}
+			}
 		}()
 	}
-	return resultChan
+	return resultChannel
 }
