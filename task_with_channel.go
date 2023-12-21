@@ -12,7 +12,7 @@ func main() {
 		go func() {
 			defer close(c)
 			time.Sleep(after)
-			c <- "hello yopta after " + after.String()
+			c <- "hello after " + after.String()
 		}()
 		return c
 	}
